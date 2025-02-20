@@ -1,9 +1,12 @@
 import { db, eq, lte, Messages } from 'astro:db';
+import { config } from "dotenv";
 import twilio from 'twilio';
 
+config({ path: "../../.env" });
+
 // Configuración de Twilio
-const accountSid = import.meta.env.TWILIO_ACCOUNT_SID;
-const authToken = import.meta.env.TWILIO_AUTH_TOKEN;
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
 
 export async function checkAndSendMessages() {
