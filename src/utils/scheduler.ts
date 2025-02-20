@@ -1,4 +1,4 @@
-import { db, eq, lte, Messages } from 'astro:db';
+const { db, eq, lte, Messages } = await import('astro:db');
 import { config } from "dotenv";
 import twilio from 'twilio';
 
