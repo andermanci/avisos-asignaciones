@@ -12,11 +12,12 @@ import netlify from '@astrojs/netlify';
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
-
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    ssr: {
+      noExternal: ['astro:db'], // Asegura que Astro no intente externalizar `astro:db`
+    },
   },
-
   integrations: [react(), db()],
   adapter: netlify()
 });
