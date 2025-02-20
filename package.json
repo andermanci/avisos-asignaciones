@@ -9,6 +9,27 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.3.0"
+    "@astrojs/db": "^0.14.6",
+    "@astrojs/netlify": "^6.2.0",
+    "@astrojs/react": "^4.2.0",
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@nanostores/react": "^0.8.4",
+    "@tailwindcss/vite": "^4.0.6",
+    "@types/react": "^19.0.9",
+    "@types/react-dom": "^19.0.3",
+    "astro": "^5.3.0",
+    "nanostores": "^0.11.4",
+    "node-cron": "^3.0.3",
+    "pdfjs-dist": "^4.10.38",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.6",
+    "twilio": "^5.4.4"
+  },
+  "devDependencies": {
+    "@types/node-cron": "^3.0.11"
   }
 }

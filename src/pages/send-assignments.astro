@@ -1,0 +1,16 @@
+---
+import Layout from '@/layouts/Layout.astro';
+
+import { SendAssignments } from '@/components/SendAssignments.jsx'
+import { db, Messages } from 'astro:db';
+
+const dbData = await db.select().from(Messages).all();
+
+    console.log({dbData});
+---
+
+<Layout title="Enviar avisos">
+	<main class="grid grid-cols-3 h-full">
+        <SendAssignments client:load/>
+	</main>
+</Layout>

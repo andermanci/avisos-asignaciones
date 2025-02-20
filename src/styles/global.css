@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Agregar en tu archivo CSS */
+.fade-out {
+    animation: fadeOut 0.5s ease-out forwards;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}

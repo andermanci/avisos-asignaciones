@@ -1,0 +1,19 @@
+---
+import Layout from '@/layouts/Layout.astro';
+
+import { PdfViewer } from '@/components/PdfViewer.jsx'
+import { PdfResults } from '@/components/PdfResults.jsx'
+---
+
+<Layout title="Resultados">
+	<main class="grid grid-cols-2 h-full">
+        <section class="bg-gray-800 relative">
+            <div class="sticky top-0 h-screen">
+                <PdfViewer client:load/>
+            </div>
+        </section>
+        <section class="flex flex-col p-8 bg-gray-50">
+            <PdfResults client:load/>
+        </section>
+	</main>
+</Layout>
