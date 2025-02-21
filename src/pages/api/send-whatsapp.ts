@@ -1,15 +1,24 @@
-import type { APIRoute } from "astro";
-import { checkAndSendMessages } from "src/utils/scheduler";
+import type { APIRoute } from 'astro';
+import { checkAndSendMessages } from 'src/utils/scheduler';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async () => {
     try {
-        checkAndSendMessages();
-
-        return new Response("Se ha mandado bien", { status: 200 });
-    } catch (error) {
-        return new Response("Ha ocurrido un error", {
+        const result = await checkAndSendMessages();
+        
+        // Devolver la respuesta con los resultados
+        return new Response(JSON.stringify(result), { 
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+    } catch (error: any) {
+        console.error('Error ejecutando el cron job:', error);
+        return new Response(JSON.stringify({ message: 'Ha ocurrido un error', error: error.message }), { 
             status: 500,
+            headers: {
+                'Content-Type': 'application/json',
+            }
         });
     }
 };
-
