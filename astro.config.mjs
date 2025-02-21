@@ -15,7 +15,7 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     ssr: {
-      noExternal: ['astro:db'], // Asegura que Astro no intente externalizar `astro:db`
+      noExternal: ['astro:db'],
     },
   },
   integrations: [react(), db()],
