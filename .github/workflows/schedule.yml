@@ -2,7 +2,7 @@ name: Cron Job for Avisos Alza
 
 on:
   schedule:
-    - cron: '* * * * *'
+    - cron: '0 9-20 * * *'
 
 jobs:
   send-messages:

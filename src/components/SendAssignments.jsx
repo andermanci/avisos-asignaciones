@@ -6,6 +6,9 @@ export function SendAssignments() {
 
     const getLocalISODateTime = () => {
         const now = new Date();
+        now.setMinutes(0); // Redondear a la hora exacta (0 minutos)
+        now.setSeconds(0); // Redondear a 0 segundos
+        now.setMilliseconds(0); // Redondear a 0 milisegundos
         const offset = now.getTimezoneOffset();
         const localDate = new Date(now.getTime() - offset * 60000);
         return localDate.toISOString().slice(0, 16);
@@ -70,6 +73,18 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
         updatedData[idx].assignments[subIdx].message = value;
         localStorage.setItem('selectedData', JSON.stringify(updatedData));
         setSelectedData(updatedData);
+    }
+
+    const handleDateChange = (e) => {
+        const selectedDate = new Date(e.target.value);
+        selectedDate.setMinutes(0); // Redondear a la hora exacta (0 minutos)
+        selectedDate.setSeconds(0); // Redondear a 0 segundos
+        selectedDate.setMilliseconds(0); // Redondear a 0 milisegundos
+
+        const localISOTime = selectedDate.toLocaleString('sv-SE'); // Usa 'sv-SE' para formato ISO local
+        const formattedDate = localISOTime.slice(0, 16); // Formato adecuado para datetime-local (yyyy-MM-ddTHH:mm)
+    
+        setSendDate(formattedDate);
     }
 
     const reviewContacts = (contacts) => {
@@ -239,10 +254,10 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
 
                 <div className="flex items-center gap-2">
                     <label htmlFor="date" className="text-sm">Mandar los mensajes a esta fecha y hora:</label>
-                    <input 
-                        type="datetime-local" 
+                    <input
+                        type="datetime-local"
                         className="border border-gray-300 rounded-lg p-2 text-gray-900 text-sm"
-                        onChange={(e) => setSendDate(e.target.value)}
+                        onChange={handleDateChange}
                         value={sendDate}
                     />
                 </div>
