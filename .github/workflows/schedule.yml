@@ -14,4 +14,4 @@ jobs:
 
       - name: Call Netlify Function to send messages
         run: |
-          curl -X POST https://avisos-alza.netlify.app/.netlify/functions/sendMessages
+          curl -X POST https://avisos-alza.netlify.app/.netlify/functions/send-messages
