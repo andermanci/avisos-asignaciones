@@ -1,4 +1,4 @@
-import { checkAndSendMessages } from "src/utils/scheduler";
+import { checkAndSendMessages } from "scheduler";
 
 export async function handler(event: any) {
     try {

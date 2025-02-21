@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { checkAndSendMessages } from "src/utils/scheduler";
+import { checkAndSendMessages } from "scheduler";
 
 export const POST: APIRoute = async ({ request }) => {
     try {
