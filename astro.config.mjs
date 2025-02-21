@@ -9,10 +9,7 @@ import netlify from '@astrojs/netlify';
 export default defineConfig({
   output: 'server',
   vite: {
-    plugins: [tailwindcss()],
-    ssr: {
-      noExternal: ['astro:db'],
-    },
+    plugins: [tailwindcss()]
   },
   integrations: [react(), db()],
   adapter: netlify({
