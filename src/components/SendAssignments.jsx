@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import * as XLSX from "xlsx";
 
 export function SendAssignments() {
 
@@ -41,17 +42,26 @@ export function SendAssignments() {
     
         const reader = new FileReader();
         reader.onload = (event) => {
-            try {
-                const contacts = JSON.parse(event.target.result);
-                setContacts(contacts);
-                reviewContacts(contacts);
-            } catch (error) {
-                console.error("Error al leer el archivo JSON:", error);
-            }
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+    
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    
+            const contacts = jsonData
+                .slice(1)
+                .filter(row => row.length > 1 && row[0] && row[1])
+                .map(row => ({
+                    nombre: row[0].trim(),
+                    telefono: row[1].toString().trim()
+                }));
+    
+            setContacts(contacts);
+            reviewContacts(contacts);
         };
     
-        reader.readAsText(file);
-    };    
+        reader.readAsArrayBuffer(file);
+    };
 
     const removeContacts = () => {
         setContacts({});
@@ -91,7 +101,7 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
         const updatedData = [...selectedData];
         updatedData.forEach(item => {
             item.assignments.forEach(assignment => {
-                assignment.hasContact = contacts.contactos?.some(contact => getFormattedName(contact.nombre + contact.apellido) == getFormattedName(assignment.name));
+                assignment.hasContact = contacts.some(contact => getFormattedName(contact.nombre) == getFormattedName(assignment.name));
             });
         });
         setSelectedData(updatedData);
@@ -114,8 +124,8 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
         const assignment = selectedData[idx].assignments[subIdx];
         const sendAt = new Date(sendDate);
 
-        const contact = contacts.contactos.find(
-            contact => getFormattedName(contact.nombre + contact.apellido) === getFormattedName(assignment.name)
+        const contact = contacts.find(
+            contact => getFormattedName(contact.nombre) === getFormattedName(assignment.name)
         );
 
         if (!contact) {
@@ -123,20 +133,23 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
             return;
         }
 
-        const response = await fetch('/api/schedule', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: assignment.message,
-                telefono: contact.telefono,
-                sendAt: sendAt.toISOString(), // Guardar fecha en formato ISO
-                status: 'pending' // Estado inicial
-            })
-        });
+        const url = `https://wa.me/${contact.telefono}?text=${encodeURIComponent(assignment.message)}`;
+        window.open(url, '_blank');
+
+        // const response = await fetch('/api/schedule', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({
+        //         message: assignment.message,
+        //         telefono: contact.telefono,
+        //         sendAt: sendAt.toISOString(), // Guardar fecha en formato ISO
+        //         status: 'pending' // Estado inicial
+        //     })
+        // });
     
-        const data = await response.json();
+        // const data = await response.json();
     
-        if (data.success) {
+        // if (data.success) {
             // Marcar el assignment como en proceso de eliminación
             setAnimatingAssignments((prev) => [...prev, `${idx}-${subIdx}`]);
 
@@ -152,9 +165,9 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
                     prev.filter((item) => item !== `${idx}-${subIdx}`)
                 );
             }, 500);  // Esperamos 1 segundo para que se vea la animación
-        } else {
-            alert("Hubo un error al enviar el mensaje.");
-        }
+        // } else {
+        //     alert("Hubo un error al enviar el mensaje.");
+        // }
     };
 
     const callScheduler = async () => {
@@ -165,14 +178,12 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
                 message: "hola"
             })
         });
-
-        console.log({response});
     };
 
 
     const contactChange = (contact, value) => {
-        const updatedContacts = [...contacts.contactos];
-        updatedContacts[contacts.contactos.indexOf(contact)] = { ...contact, telefono: value };
+        const updatedContacts = [...contacts];
+        updatedContacts[contacts.indexOf(contact)] = { ...contact, telefono: value };
         setContacts({ ...contacts, contactos: updatedContacts });
     }
 
@@ -195,7 +206,7 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
         <>
             <section className="col-span-1 bg-gray-200 h-max-screen">
                 <div className="sticky top-0 flex flex-col gap-2 justify-start p-4">
-                    { contacts.contactos && contacts.contactos?.length > 0 ? (
+                    { contacts && contacts.length > 0 ? (
                         <button className="bg-gray-400 text-white text-center py-2 rounded-lg mb-2" onClick={removeContacts}>Volver a subir contactos</button>
                     ) : (
                         <div className="flex items-center justify-center w-full mb-2">
@@ -205,19 +216,19 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
                                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
                                     </svg>
                                     <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 text-center"><span className="font-semibold">Haz click para subir tus contactos</span> o arrastralos aquí</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Formato JSON</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Formato XLSX</p>
                                 </div>
-                                <input id="dropzone-file" type="file"  accept=".json" onChange={handleFileUpload} className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer" />
+                                <input id="dropzone-file" type="file"  accept=".xlsx" onChange={handleFileUpload} className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer" />
                             </label>
                         </div> 
                     )}
 
                     <h2 className="text-2xl">Contactos</h2>
-                    <div className="flex flex-col gap-2 justify-start">
-                        { contacts.contactos && contacts.contactos?.length > 0 ? (
-                            contacts.contactos.map((contact, idx) => (
+                    <div className="flex flex-col gap-2 justify-start h-[calc(100vh-112px)] overflow-y-auto pb-4">
+                        { contacts && contacts.length > 0 ? (
+                            contacts.map((contact, idx) => (
                                 <div key={idx}>
-                                    <label htmlFor={"contacto" + idx} className="block text-md font-medium text-gray-900">{contact.nombre} {contact.apellido}</label>
+                                    <label htmlFor={"contacto" + idx} className="block text-md font-medium text-gray-900">{contact.nombre}</label>
                                     <input
                                         type="text"
                                         id={"contacto" + idx}
@@ -247,12 +258,12 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
                     <span className="mr-2">Enviar mensajes</span>
                 </button> */}
 
-                <div className="flex justify-between items-center">
+                {/* <div className="flex justify-between items-center">
                     <h1 className="text-4xl">Mensajes</h1>
                     <button className="bg-green-600 text-white px-4 py-2 rounded-lg cursor-pointer" onClick={() => sendAll()}>Enviar todos</button>
-                </div>
+                </div> */}
 
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                     <label htmlFor="date" className="text-sm">Mandar los mensajes a esta fecha y hora:</label>
                     <input
                         type="datetime-local"
@@ -260,7 +271,7 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
                         onChange={handleDateChange}
                         value={sendDate}
                     />
-                </div>
+                </div> */}
                 
                 { selectedData.length === 0 ? (
                     <p className="text-center text-gray-500">No hay datos disponibles.</p>

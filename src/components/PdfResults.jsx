@@ -173,7 +173,7 @@ export function PdfResults() {
                                                     />
                                                 </div>
                                             ) : (
-                                                <div key={subIdx} className="grid gap-6 md:grid-cols-2">
+                                                <div key={subIdx} className="grid gap-3 md:gap-6 md:grid-cols-2">
                                                     <div>
                                                         <label htmlFor={"maestros" + subIdx} className="block mb-2 text-md font-medium text-gray-900">{assignment.title}</label>
                                                         <input
@@ -187,7 +187,7 @@ export function PdfResults() {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label htmlFor={"ayudantes" + subIdx} className="block mb-2 text-md font-medium text-gray-900">&nbsp;</label>
+                                                        <label htmlFor={"ayudantes" + subIdx} className="block mb-2 text-md font-medium text-gray-900 hidden md:block">&nbsp;</label>
                                                         <input
                                                             type="text"
                                                             id={"ayudantes" + subIdx}

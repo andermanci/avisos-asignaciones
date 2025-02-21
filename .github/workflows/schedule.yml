@@ -1,18 +1,18 @@
-name: Cron Job for Avisos Alza
+# name: Cron Job for Avisos Alza
 
-on:
-  schedule:
-    - cron: '0 9-20 * * *'
+# on:
+#   schedule:
+#     - cron: '0 9-20 * * *'
 
-jobs:
-  send-messages:
-    runs-on: ubuntu-latest
+# jobs:
+#   send-messages:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
 
-      - name: Call Netlify Function to send messages
-        run: |
-          curl -X POST https://avisos-alza.netlify.app/api/send-whatsapp
+#       - name: Call Netlify Function to send messages
+#         run: |
+#           curl -X POST https://avisos-alza.netlify.app/api/send-whatsapp
 
