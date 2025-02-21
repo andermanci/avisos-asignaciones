@@ -1,8 +1,10 @@
-import { db, eq, lte, Messages } from 'astro:db';
+import * as astroDB from "astro:db";
 import { config } from "dotenv";
 import twilio from 'twilio';
 
 config({ path: "../../.env" });
+
+const { db, eq, lte, Messages } = astroDB;
 
 // Configuración de Twilio
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
