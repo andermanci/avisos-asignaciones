@@ -29,6 +29,8 @@ export function SendAssignments() {
                 assignments: item.assignments.map(assignment => ({
                     ...assignment,
                     message: generateMessage(assignment, new Date(item.week)),
+                    proposalContact: null,
+                    similarity: null,
                     hasContact: false
                 }))
             }));
@@ -54,7 +56,8 @@ export function SendAssignments() {
                 .map(row => ({
                     nombre: row[0].trim(),
                     telefono: row[1].toString().trim()
-                }));
+                }))
+                .sort((a, b) => a.nombre.localeCompare(b.nombre));
     
             setContacts(contacts);
             reviewContacts(contacts);
@@ -99,13 +102,76 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
 
     const reviewContacts = (contacts) => {
         const updatedData = [...selectedData];
+    
         updatedData.forEach(item => {
             item.assignments.forEach(assignment => {
-                assignment.hasContact = contacts.some(contact => getFormattedName(contact.nombre) == getFormattedName(assignment.name));
+                const formattedAssignmentName = getFormattedName(assignment.name);
+                let foundExactMatch = false;
+    
+                contacts.forEach(contact => {
+                    const formattedContactName = getFormattedName(contact.nombre);
+    
+                    if (formattedAssignmentName !== '' && formattedContactName !== '') {
+                        if (formattedAssignmentName.localeCompare(formattedContactName, undefined, { sensitivity: 'base' }) === 0) {
+                            assignment.hasContact = true;
+                            foundExactMatch = true;
+                        }
+                    }
+                });
+    
+                if (!foundExactMatch) {
+                    contacts.forEach(contact => {
+                        const formattedContactName = getFormattedName(contact.nombre);
+    
+                        if (formattedAssignmentName !== '' && formattedContactName !== '') {
+                            const similarity = getSimilarity(formattedAssignmentName, formattedContactName);
+                            if (similarity >= 50) {
+                                assignment.proposalContact = contact.nombre;
+                                assignment.similarity = similarity.toFixed(2);
+                            }
+                        }
+                    });
+                }
             });
         });
+    
         setSelectedData(updatedData);
-    }
+    };
+     
+
+    const levenshteinDistance = (a, b) => {
+        if (!a || !b) return 0;
+        const matrix = [];
+    
+        for (let i = 0; i <= b.length; i++) {
+            matrix[i] = [i];
+        }
+        for (let j = 0; j <= a.length; j++) {
+            matrix[0][j] = j;
+        }
+    
+        for (let i = 1; i <= b.length; i++) {
+            for (let j = 1; j <= a.length; j++) {
+                if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1,
+                        Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+                    );
+                }
+            }
+        }
+    
+        return matrix[b.length][a.length];
+    };
+    
+    const getSimilarity = (str1, str2) => {
+        if (!str1 || !str2) return 0;
+        const distance = levenshteinDistance(str1, str2);
+        const maxLength = Math.max(str1.length, str2.length);
+        return ((maxLength - distance) / maxLength) * 100;
+    };  
 
     const getFormattedName = (name) => {
         return name
@@ -184,8 +250,24 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
     const contactChange = (contact, value) => {
         const updatedContacts = [...contacts];
         updatedContacts[contacts.indexOf(contact)] = { ...contact, telefono: value };
-        setContacts({ ...contacts, contactos: updatedContacts });
+        setContacts(updatedContacts);
     }
+
+    const handleReferralDecision = (isYes, idx, subIdx) => {
+        const updatedData = [...selectedData];
+        const assignment = updatedData[idx].assignments[subIdx];
+        
+        if (isYes) {
+            assignment.hasContact = true;
+            assignment.name = assignment.proposalContact;
+            assignment.proposalContact = null;
+        } else {
+            assignment.proposalContact = null;
+        }
+    
+        localStorage.setItem('selectedData', JSON.stringify(updatedData));
+        setSelectedData(updatedData);
+    };
 
     const sendAll = async () => {
         for (let idx = 0; idx < selectedData.length; idx++) {
@@ -283,7 +365,26 @@ Título: ${assignment.duration ? '(' + assignment.duration + ' min.) ' : ''}${ti
                                     <div className="flex flex-col gap-y-2">
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm">Para: <b>{assignment.name}</b></span>
-                                            <span className="text-sm text-red-600">{assignment.hasContact ? '' : 'No tienes su contacto'}</span>
+                                            { assignment.proposalContact ? 
+                                                <>
+                                                    <span className="text-sm">¿Puede referirse a <b>{assignment.proposalContact}</b>?</span>
+                                                    <div className="flex gap-2">
+                                                        <button 
+                                                            className="bg-green-500 text-white px-4 py-2 rounded-lg"
+                                                            onClick={() => handleReferralDecision(true, idx, subIdx)}>
+                                                            Sí
+                                                        </button>
+                                                        <button 
+                                                            className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                                                            onClick={() => handleReferralDecision(false, idx, subIdx)}>
+                                                            No
+                                                        </button>
+                                                    </div>
+                                                </>
+                                                : assignment.hasContact ?
+                                                '' : 
+                                                <span className="text-sm text-red-600">No tienes su contacto</span>
+                                            }
                                         </div>
                                         <textarea name={`${idx}-${subIdx}-textarea`} id={`${idx}-${subIdx}-textarea`} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 field-sizing-content" placeholder="Mensaje" value={assignment.message} onChange={(e) => handleMessageChange(idx, subIdx, e.target.value)} required />
                                         <div className="flex items-center justify-end">

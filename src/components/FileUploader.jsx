@@ -31,7 +31,7 @@ export function FileUploader() {
                 let fixedText = "";
                 let prevItem = "";
             
-                textContent.items.forEach((item) => {
+                textContent.items.forEach((item, index) => {
                     if (item.str === "") {
                         fixedText += "\n";
                     } else if (item.str == " " && item.width > 15) {
@@ -55,8 +55,21 @@ export function FileUploader() {
         reader.readAsArrayBuffer(file);
     };
 
+    const unirLineasQueContinuan = (texto) => {
+        const connectors = ['por', 'el', 'la', 'durante', 'de', 'para', 'con', 'en', 'del'];
+        const regex = new RegExp(`(.*?)(\\b${connectors.join('|')}\\b)([\\n\\r]+)(.*)`, 'gi');
+    
+        let textoUnido = texto.replace(regex, (match, linea1, conector, salto, linea2) => {
+            return `${linea1} ${conector} ${linea2}`.replace(/\s+/g, ' ').trim();
+        });
+    
+        return textoUnido;
+    };
+    
+
     const generateJson = (text) => {
-        const lines = text.split("\n");
+        const fixedText = unirLineasQueContinuan(text);
+        const lines = fixedText.split("\n");
 
         const jsonData = [];
         let currentDate = null;
@@ -77,6 +90,8 @@ export function FileUploader() {
                 };
 
                 oracion = 1;
+
+                category = '';
                 
                 continue;
             }
@@ -90,7 +105,7 @@ export function FileUploader() {
                 .normalize("NFD")
                 .replace(/[\u0300-\u036f]/g, "");
 
-            if (formattedLine.includes('oracion')) {
+            if (formattedLine.includes('(oracion)')) {
                 currentItem.assignments.push({
                     title: `Oración ${oracion}`,
                     name: line.split('(')[0]
@@ -173,6 +188,19 @@ export function FileUploader() {
         const [day, month, year] = dateStr.split('/'); 
         return `${year}-${month}-${day}`;
     };
+
+    const equalArrays = (arr1, arr2) => {
+        if (arr1.length !== arr2.length) return false;
+      
+        for (let i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+      
 
     return (
         <section className="flex flex-col gap-8 w-full">

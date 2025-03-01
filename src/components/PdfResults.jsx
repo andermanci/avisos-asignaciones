@@ -15,8 +15,10 @@ export function PdfResults() {
             const updatedData = parsedData.map(item => ({
                 ...item,
                 week: new Date(item.week),
-            }));
-
+            })).filter(
+                item => item.assignments.length > 0
+            );
+            
             setJsonData(updatedData);
         }
     }, []);
